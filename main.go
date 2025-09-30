@@ -11,8 +11,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
-	"toller-server/internal/auth"
-	"toller-server/internal/teams"
+	"toller-server/modules/auth"
+	"toller-server/modules/teams"
 )
 
 func main() {
@@ -75,21 +75,21 @@ func main() {
 		port = "8080"
 	}
 
-	log.Println("Conectado a la DB exitosamente")
-	log.Println("===========================================")
-	log.Println("📋 Rutas disponibles:")
-	log.Println("   POST   /register")
-	log.Println("   POST   /login")
-	log.Println("   POST   /teams (requiere auth)")
-	log.Println("   GET    /teams (requiere auth)")
-	log.Println("   GET    /teams/{id} (requiere auth)")
-	log.Println("   PUT    /teams/{id} (requiere auth)")
-	log.Println("   GET    /teams/{id}/members (requiere auth)")
-	log.Println("   POST   /teams/{id}/members (requiere auth)")
-	log.Println("   DELETE /teams/{id}/members/{user_id} (requiere auth)")
-	log.Println("   POST   /teams/{id}/leave (requiere auth)")
-	log.Println("===========================================")
-	log.Printf("🚀 Servidor corriendo en puerto %s\n", port)
+	// log.Println("Conectado a la DB exitosamente")
+	// log.Println("===========================================")
+	// log.Println("📋 Rutas disponibles:")
+	// log.Println("   POST   /register")
+	// log.Println("   POST   /login")
+	// log.Println("   POST   /teams (requiere auth)")
+	// log.Println("   GET    /teams (requiere auth)")
+	// log.Println("   GET    /teams/{id} (requiere auth)")
+	// log.Println("   PUT    /teams/{id} (requiere auth)")
+	// log.Println("   GET    /teams/{id}/members (requiere auth)")
+	// log.Println("   POST   /teams/{id}/members (requiere auth)")
+	// log.Println("   DELETE /teams/{id}/members/{user_id} (requiere auth)")
+	// log.Println("   POST   /teams/{id}/leave (requiere auth)")
+	// log.Println("===========================================")
+	// log.Printf("🚀 Servidor corriendo en puerto %s\n", port)
 
 	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatal("Error al iniciar el servidor:", err)
