@@ -1,0 +1,270 @@
+### Variables (cambia el token después de hacer login)
+@baseUrl = http://localhost:8080
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTk1Mjg0NzgsInVzZXJfaWQiOjF9.tmdeI-EfEEDj87DG6mOt65ojAItM_yk25_kB3ujzyGI
+
+### ============================================
+### 🔐 AUTENTICACIÓN
+### ============================================
+
+### Register User 1 (Fran)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "username": "krossler",
+  "email": "krosslerfrancisco@gmail.com",
+  "password": "1234"
+}
+
+### Register User 2 (Maria)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "username": "maria",
+  "email": "maria@example.com",
+  "password": "123456"
+}
+
+### Register User 3 (Juan)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "username": "juan",
+  "email": "juan@example.com",
+  "password": "123456"
+}
+
+### Login Fran (copia el token!)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "krosslerfrancisco@gmail.com",
+  "password": "1234"
+}
+
+### Login Maria
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "maria@example.com",
+  "password": "123456"
+}
+
+### Login inválido (debe fallar)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "fran@example.com",
+  "password": "wrongpassword"
+}
+
+### ============================================
+### 👥 TEAMS
+### ============================================
+
+### Crear Team 1 (Team Alpha)
+POST {{baseUrl}}/teams
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Team Alpha",
+  "description": "Equipo de desarrollo principal"
+}
+
+### Crear Team 2 (Team Beta)
+POST {{baseUrl}}/teams
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Team Beta",
+  "description": "Equipo de marketing"
+}
+
+### Crear Team sin nombre (debe fallar)
+POST {{baseUrl}}/teams
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "description": "Sin nombre"
+}
+
+### Crear Team sin token (debe fallar - 401)
+POST {{baseUrl}}/teams
+Content-Type: application/json
+
+{
+  "name": "Team Sin Auth"
+}
+
+### Obtener todos mis teams
+GET {{baseUrl}}/teams
+Authorization: Bearer {{token}}
+
+### Obtener Team específico (ID 1)
+GET {{baseUrl}}/teams/1
+Authorization: Bearer {{token}}
+
+### Obtener Team que no existe (debe fallar)
+GET {{baseUrl}}/teams/999
+Authorization: Bearer {{token}}
+
+### Actualizar Team (solo admins)
+PUT {{baseUrl}}/teams/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Team Alpha Actualizado",
+  "description": "Nueva descripción del equipo"
+}
+
+### ============================================
+### 👤 TEAM MEMBERS
+### ============================================
+
+### Ver miembros del Team 1
+GET {{baseUrl}}/teams/1/members
+Authorization: Bearer {{token}}
+
+### Agregar a Maria al Team 1 (user_id: 2)
+POST {{baseUrl}}/teams/1/members
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "user_id": 2
+}
+
+### Agregar a Juan al Team 1 (user_id: 3)
+POST {{baseUrl}}/teams/1/members
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "user_id": 3
+}
+
+### Agregar usuario que ya es miembro (debe fallar)
+POST {{baseUrl}}/teams/1/members
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "user_id": 2
+}
+
+### Remover a Juan del Team 1 (user_id: 3)
+DELETE {{baseUrl}}/teams/1/members/3
+Authorization: Bearer {{token}}
+
+### Intentar remover al admin (debe fallar)
+DELETE {{baseUrl}}/teams/1/members/1
+Authorization: Bearer {{token}}
+
+### Salir del team (leave)
+POST {{baseUrl}}/teams/2/leave
+Authorization: Bearer {{token}}
+
+### ============================================
+### 🧪 PRUEBAS DE SEGURIDAD
+### ============================================
+
+### Acceder a ruta protegida sin token (debe fallar)
+GET {{baseUrl}}/teams
+
+### Acceder con token inválido (debe fallar)
+GET {{baseUrl}}/teams
+Authorization: Bearer token_invalido_123
+
+### Acceder con token mal formado (debe fallar)
+GET {{baseUrl}}/teams
+Authorization: InvalidFormat
+
+### ============================================
+### 📊 CASOS DE USO COMPLETOS
+### ============================================
+
+### Flujo completo: Crear team, agregar miembros, ver miembros
+
+# 1. Login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "fran@example.com",
+  "password": "123456"
+}
+
+###
+
+# 2. Crear team
+POST {{baseUrl}}/teams
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Proyecto Nuevo",
+  "description": "Team para el proyecto X"
+}
+
+###
+
+# 3. Ver mis teams
+GET {{baseUrl}}/teams
+Authorization: Bearer {{token}}
+
+###
+
+# 4. Agregar miembro
+POST {{baseUrl}}/teams/1/members
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "user_id": 2
+}
+
+###
+
+# 5. Ver miembros del team
+GET {{baseUrl}}/teams/1/members
+Authorization: Bearer {{token}}
+
+### ============================================
+### 🐛 EDGE CASES
+### ============================================
+
+### ID no numérico en URL (debe fallar)
+GET {{baseUrl}}/teams/abc
+Authorization: Bearer {{token}}
+
+### ID negativo
+GET {{baseUrl}}/teams/-1
+Authorization: Bearer {{token}}
+
+### JSON malformado (debe fallar)
+POST {{baseUrl}}/teams
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Test"
+  "missing_comma": true
+}
+
+### Campo faltante en request
+POST {{baseUrl}}/teams/1/members
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "wrong_field": 2
+}
