@@ -15,6 +15,7 @@ import (
 	"toller-server/modules/channels"
 	"toller-server/modules/chat"
 	"toller-server/modules/dms"
+	"toller-server/modules/friends"
 	"toller-server/modules/teams"
 	"toller-server/modules/users"
 )
@@ -90,6 +91,7 @@ func main() {
 	channels.RegisterRoutes(r, channelsHandler, auth.JWTMiddleware)
 	dms.RegisterDMSRoutes(r, db)
 	users.RegisterUserRoutes(r, db)
+	friends.RegisterFriendRoutes(r, db)
 
 	// Puerto
 	port := os.Getenv("PORT")

@@ -23,6 +23,7 @@ import (
 	"toller-server/modules/channels"
 	"toller-server/modules/chat"
 	"toller-server/modules/dms"
+	"toller-server/modules/friends"
 	"toller-server/modules/teams"
 )
 
@@ -62,11 +63,6 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB) {
 	channelsService := &channels.ChannelService{Repo: channelsRepo}
 	channelsHandler := &channels.ChannelHandler{Service: channelsService}
 
-	// Inicializar DMs
-	
-	
-	
-
 	hub := chat.NewHub()
 	chatHandler := chat.NewHandler(db, jwtSecret, hub)
 
@@ -78,6 +74,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB) {
 	teams.RegisterRoutes(r, teamsHandler, auth.JWTMiddleware)
 	channels.RegisterRoutes(r, channelsHandler, auth.JWTMiddleware)
 	dms.RegisterDMSRoutes(r, db)
+	friends.RegisterFriendRoutes(r, db)
 
 	server := httptest.NewServer(r)
 
@@ -93,6 +90,7 @@ func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB) {
 func cleanupTables(t *testing.T, db *sql.DB) {
 	// El orden es importante por las foreign keys
 	_, err := db.Exec(`
+		DELETE FROM friends;
         DELETE FROM messages;
         DELETE FROM channel_users;
         DELETE FROM channels;
