@@ -27,7 +27,8 @@ CREATE TABLE user_teams (
 CREATE TABLE channels (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    team_id INT REFERENCES teams(id) ON DELETE CASCADE,
+    team_id INT REFERENCES teams(id) ON DELETE CASCADE, -- Nulable para DMs
+    is_dm BOOLEAN NOT NULL DEFAULT FALSE, -- True para canales de DM
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -54,4 +55,13 @@ CREATE TABLE friends (
     friend_id INT REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(20) DEFAULT 'pending', -- pending, accepted, blocked
     PRIMARY KEY (user_id, friend_id)
+);
+
+-- Last Read
+CREATE TABLE last_read (
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    channel_id INT REFERENCES channels(id) ON DELETE CASCADE,
+    message_id INT REFERENCES messages(id) ON DELETE CASCADE,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, channel_id)
 );

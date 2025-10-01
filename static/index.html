@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Guía de Testing - Toller API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+        h1 {
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #00796b;
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 3px;
+        }
+        h3 {
+            color: #3c4043;
+            margin-top: 20px;
+        }
+        code, pre {
+            font-family: Consolas, "Courier New", monospace;
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.95em;
+            display: block;
+            white-space: pre-wrap;
+        }
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            background-color: #272822;
+            color: #f8f8f2;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        ul li {
+            margin-bottom: 8px;
+        }
+        ul.test-list li::before {
+            content: '✓';
+            color: #28aa28;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+        .important {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        .section-header {
+            font-weight: bold;
+            color: #00796b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Guía de Testing - Toller API</h1>
+        
+        <h2>📋 Requisitos</h2>
+        <ul>
+            <li>Tener el servidor corriendo: <code style="background-color: #ddd;">go run cmd/server/main.go</code></li>
+            <li>Extensión **REST Client** para VS Code (recomendado) o usar curl</li>
+        </ul>
+        
+        <h2>🚀 Cómo usar los tests</h2>
+        
+        <h3>Opción 1: VS Code REST Client (Recomendado)</h3>
+        <ol>
+            <li>Instala la extensión **REST Client** en VS Code</li>
+            <li>Abre el archivo <code>tests/api.http</code></li>
+            <li>Verás un botón **"Send Request"** sobre cada request</li>
+            <li>Click para ejecutar cada test</li>
+        </ol>
+        
+        <h3>Opción 2: Postman</h3>
+        <p>Importa las requests manualmente o usa curl.</p>
+        
+        <h3>Opción 3: curl</h3>
+        <p>Puedes copiar los requests del archivo <code>.http</code> y adaptarlos a curl.</p>
+
+        <h2>📝 Flujo de Testing Recomendado</h2>
+
+        <h3>1️⃣ Setup Inicial</h3>
+        <pre><code># Registrar usuarios de prueba
+POST /register  (Fran)
+POST /register  (Maria)
+POST /register  (Juan)</code></pre>
+
+        <h3>2️⃣ Autenticación</h3>
+        <pre><code># Login con Fran
+POST /login</code></pre>
+        <div class="important">
+            <strong>⚠️ IMPORTANTE:</strong> Copia el token del response y pégalo en la variable <code>@token</code>
+        </div>
+
+        <h3>3️⃣ Gestión de Teams</h3>
+        <pre><code># Crear teams
+POST /teams  (Team Alpha)
+POST /teams  (Team Beta)
+
+# Ver mis teams
+GET /teams
+
+# Ver detalles de un team
+GET /teams/1</code></pre>
+
+        <h3>4️⃣ Gestión de Miembros</h3>
+        <pre><code># Ver miembros actuales
+GET /teams/1/members
+
+# Agregar miembros
+POST /teams/1/members  (Maria - user_id: 2)
+POST /teams/1/members  (Juan - user_id: 3)
+
+# Ver miembros actualizados
+GET /teams/1/members
+
+# Remover miembro
+DELETE /teams/1/members/3</code></pre>
+
+        <h2>🎯 Tests por Categoría</h2>
+
+        <h3 class="section-header">✅ Tests de Autenticación</h3>
+        <ul class="test-list">
+            <li>Registro exitoso</li>
+            <li>Registro con email duplicado (debe fallar)</li>
+            <li>Login exitoso</li>
+            <li>Login con credenciales incorrectas (debe fallar)</li>
+        </ul>
+
+        <h3 class="section-header">✅ Tests de Teams</h3>
+        <ul class="test-list">
+            <li>Crear team exitosamente</li>
+            <li>Crear team sin nombre (debe fallar)</li>
+            <li>Crear team sin autenticación (debe fallar)</li>
+            <li>Obtener lista de teams del usuario</li>
+            <li>Obtener team específico</li>
+            <li>Actualizar team (solo admin)</li>
+            <li>Obtener team que no existe (debe fallar)</li>
+        </ul>
+
+        <h3 class="section-header">✅ Tests de Miembros</h3>
+        <ul class="test-list">
+            <li>Ver miembros de un team</li>
+            <li>Agregar miembro al team (solo admin)</li>
+            <li>Agregar miembro duplicado (debe fallar)</li>
+            <li>Remover miembro del team (solo admin)</li>
+            <li>Remover al admin (debe fallar)</li>
+            <li>Salir del team (leave)</li>
+        </ul>
+
+        <h3 class="section-header">✅ Tests de Seguridad</h3>
+        <ul class="test-list">
+            <li>Acceso sin token (debe retornar 401)</li>
+            <li>Acceso con token inválido (debe retornar 401)</li>
+            <li>Acceso con token mal formado (debe retornar 401)</li>
+            <li>Acceso con token expirado (debe retornar 401)</li>
+        </ul>
+
+        <h3 class="section-header">✅ Tests de Edge Cases</h3>
+        <ul class="test-list">
+            <li>ID no numérico en URL</li>
+            <li>ID negativo</li>
+            <li>JSON malformado</li>
+            <li>Campos faltantes en request</li>
+            <li>Team/User que no existe</li>
+        </ul>
+
+        <h2>🔧 Configuración de Variables</h2>
+        <p>En <code>api.http</code>, actualiza estas variables según tu setup:</p>
+        <pre><code>@baseUrl = http://localhost:8080  # Cambia si usas otro puerto
+@token = tu_token_jwt_aqui        # Actualiza después de hacer login</code></pre>
+
+        <h2>📊 Respuestas Esperadas</h2>
+
+        <h3>✅ Registro Exitoso (201)</h3>
+        <pre>{
+  "message": "Usuario registrado exitosamente",
+  "user": {
+    "id": 1,
+    "username": "fran",
+    "email": "fran@example.com"
+  }
+}</pre>
+
+        <h3>✅ Login Exitoso (200)</h3>
+        <pre>{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "message": "Login exitoso"
+}</pre>
+
+        <h3>✅ Team Creado (201)</h3>
+        <pre>{
+  "message": "Equipo creado exitosamente",
+  "team": {
+    "id": 1,
+    "name": "Team Alpha",
+    "description": "Equipo de desarrollo",
+    "created_at": "2025-09-30T..."
+  }
+}</pre>
+
+        <h3>✅ Lista de Teams (200)</h3>
+        <pre>[
+  {
+    "id": 1,
+    "name": "Team Alpha",
+    "description": "Equipo de desarrollo",
+    "created_at": "2025-09-30T...",
+    "user_role": "admin"
+  }
+]</pre>
+
+        <h3>❌ Error de Autenticación (401)</h3>
+        <pre>{
+  "error": "unauthorized",
+  "message": "Token no proporcionado"
+}</pre>
+
+        <h3>❌ Error de Permisos (403)</h3>
+        <pre>{
+  "error": "access_denied",
+  "message": "Solo los admins pueden agregar miembros"
+}</pre>
+
+        <h2>🐛 Troubleshooting</h2>
+        
+        <h3>El token no funciona</h3>
+        <ul>
+            <li>Verifica que copiaste el token completo</li>
+            <li>Asegúrate de usar el formato: <code>Bearer tu_token</code></li>
+            <li>El token expira en 72 horas, haz login nuevamente</li>
+        </ul>
+        
+        <h3>Error de conexión</h3>
+        <ul>
+            <li>Verifica que el servidor esté corriendo</li>
+            <li>Verifica el puerto correcto (8080 por defecto)</li>
+            <li>Revisa los logs del servidor</li>
+        </ul>
+        
+        <h3>Error 500</h3>
+        <ul>
+            <li>Revisa los logs del servidor</li>
+            <li>Verifica que la base de datos esté corriendo</li>
+            <li>Verifica que las tablas existan</li>
+        </ul>
+
+        <h2>📚 Próximos Módulos</h2>
+        <p>Próximamente agregaremos tests para:</p>
+        <ul>
+            <li>📢 Channels</li>
+            <li>💬 Messages</li>
+            <li>👫 Friends (DMs)</li>
+        </ul>
+
+        <h2>💡 Tips</h2>
+        <ol>
+            <li>**Orden importa**: Ejecuta primero los tests de registro y login</li>
+            <li>**Guarda el token**: Actualiza la variable <code>@token</code> después del login</li>
+            <li>**IDs dinámicos**: Los IDs en los ejemplos (1, 2, 3) pueden variar</li>
+            <li>**Limpia la DB**: Para empezar de cero, trunca las tablas</li>
+            <li>**Logs útiles**: Revisa los logs del servidor para debugging</li>
+        </ol>
+
+        <h2>🔄 Reset de Base de Datos</h2>
+        <p>Si necesitas empezar de cero:</p>
+        <pre style="background-color: #fce4ec; color: #d81b60;"><code>TRUNCATE users, teams, user_teams CASCADE;</code></pre>
+        <p>⚠️ Esto borrará todos los datos de prueba.</p>
+    </div>
+</body>
+</html>
