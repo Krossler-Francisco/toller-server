@@ -2,106 +2,18 @@ package tests
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
-
-	"toller-server/modules/auth"
 	"toller-server/modules/channels"
 	"toller-server/modules/chat"
-	"toller-server/modules/dms"
-	"toller-server/modules/friends"
-	"toller-server/modules/teams"
+
+	"github.com/gorilla/websocket"
+	"github.com/stretchr/testify/assert"
 )
-
-// setupTestServer inicializa un servidor de prueba con una base de datos limpia.
-func setupTestServer(t *testing.T) (*httptest.Server, *sql.DB) {
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Println("No se encontró archivo .env, usando variables de entorno del sistema")
-	}
-
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		log.Fatal("DB_URL no está configurada para el test.")
-	}
-
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Fatal("JWT_SECRET no está configurada para el test.")
-	}
-
-	db, err := sql.Open("postgres", dbURL)
-	if err != nil {
-		log.Fatal("Error al conectar a la DB:", err)
-	}
-
-	// Limpiar tablas para un estado inicial consistente
-	cleanupTables(t, db)
-
-	authRepo := &auth.UserRepository{DB: db}
-	authService := &auth.AuthService{Repo: authRepo}
-	authHandler := &auth.AuthHandler{Service: authService}
-
-	teamsRepo := &teams.TeamRepository{DB: db}
-	teamsService := &teams.TeamService{Repo: teamsRepo}
-	teamsHandler := &teams.TeamHandler{Service: teamsService}
-
-	channelsRepo := &channels.ChannelRepository{DB: db}
-	channelsService := &channels.ChannelService{Repo: channelsRepo}
-	channelsHandler := &channels.ChannelHandler{Service: channelsService}
-
-	hub := chat.NewHub()
-	chatHandler := chat.NewHandler(db, jwtSecret, hub)
-
-	r := mux.NewRouter()
-
-	// Rutas
-	r.HandleFunc("/ws/channel/{channel_id}", chatHandler.ServeWS)
-	auth.RegisterRoutes(r, authHandler)
-	teams.RegisterRoutes(r, teamsHandler, auth.JWTMiddleware)
-	channels.RegisterRoutes(r, channelsHandler, auth.JWTMiddleware)
-	dms.RegisterDMSRoutes(r, db)
-	friends.RegisterFriendRoutes(r, db)
-
-	server := httptest.NewServer(r)
-
-	// Función de limpieza para cerrar la DB y el servidor
-	t.Cleanup(func() {
-		server.Close()
-		db.Close()
-	})
-
-	return server, db
-}
-
-func cleanupTables(t *testing.T, db *sql.DB) {
-	// El orden es importante por las foreign keys
-	_, err := db.Exec(`
-		DELETE FROM friends;
-        DELETE FROM messages;
-        DELETE FROM channel_users;
-        DELETE FROM channels;
-        DELETE FROM user_teams;
-        DELETE FROM teams;
-        DELETE FROM users;
-    `)
-	if err != nil {
-		t.Fatalf("Failed to clean up tables: %v", err)
-	}
-}
 
 func TestE2EFullFlow(t *testing.T) {
 	server, db := setupTestServer(t)
@@ -115,7 +27,7 @@ func TestE2EFullFlow(t *testing.T) {
 	}
 	registerBody, _ := json.Marshal(registerData)
 
-	resp, err := http.Post(server.URL+"/register", "application/json", bytes.NewBuffer(registerBody))
+	resp, err := http.Post(server.URL+"/api/v1/auth/register", "application/json", bytes.NewBuffer(registerBody))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
@@ -132,7 +44,7 @@ func TestE2EFullFlow(t *testing.T) {
 	}
 	loginBody, _ := json.Marshal(loginData)
 
-	resp, err = http.Post(server.URL+"/login", "application/json", bytes.NewBuffer(loginBody))
+	resp, err = http.Post(server.URL+"/api/v1/auth/login", "application/json", bytes.NewBuffer(loginBody))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 

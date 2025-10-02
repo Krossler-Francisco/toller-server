@@ -9,10 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/websocket"
-	"github.com/stretchr/testify/assert"
 	"toller-server/modules/chat"
 	"toller-server/modules/dms"
+
+	"github.com/gorilla/websocket"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDirectMessageFlow(t *testing.T) {

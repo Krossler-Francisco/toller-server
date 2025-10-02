@@ -143,7 +143,7 @@ func (h *TeamHandler) GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 func (h *TeamHandler) AddMember(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("user_id").(int)
 	vars := mux.Vars(r)
-	teamID, err := strconv.Atoi(vars["id"])
+	teamID, err := strconv.Atoi(vars["team_id"])
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -268,17 +268,4 @@ func (h *TeamHandler) LeaveTeam(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Has salido del equipo exitosamente",
 	})
-}
-
-// Registrar todas las rutas
-func RegisterRoutes(r *mux.Router, handler *TeamHandler, authMiddleware func(http.Handler) http.Handler) {
-	// Rutas protegidas con autenticación
-	r.Handle("/teams", authMiddleware(http.HandlerFunc(handler.CreateTeam))).Methods("POST")
-	r.Handle("/teams", authMiddleware(http.HandlerFunc(handler.GetUserTeams))).Methods("GET")
-	r.Handle("/teams/{id}", authMiddleware(http.HandlerFunc(handler.GetTeam))).Methods("GET")
-	r.Handle("/teams/{id}", authMiddleware(http.HandlerFunc(handler.UpdateTeam))).Methods("PUT")
-	r.Handle("/teams/{id}/members", authMiddleware(http.HandlerFunc(handler.GetTeamMembers))).Methods("GET")
-	r.Handle("/teams/{id}/members", authMiddleware(http.HandlerFunc(handler.AddMember))).Methods("POST")
-	r.Handle("/teams/{id}/members/{user_id}", authMiddleware(http.HandlerFunc(handler.RemoveMember))).Methods("DELETE")
-	r.Handle("/teams/{id}/leave", authMiddleware(http.HandlerFunc(handler.LeaveTeam))).Methods("POST")
 }

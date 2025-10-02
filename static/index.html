@@ -1,298 +1,522 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧪 Guía de Testing - Toller API</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #ffffff;
-            color: #333;
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
-        h1 {
-            color: #1a73e8;
-            border-bottom: 2px solid #1a73e8;
-            padding-bottom: 5px;
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #00796b;
-            margin-top: 30px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 3px;
-        }
-        h3 {
-            color: #3c4043;
-            margin-top: 20px;
-        }
-        code, pre {
-            font-family: Consolas, "Courier New", monospace;
-            background-color: #f0f0f0;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-size: 0.95em;
-            display: block;
-            white-space: pre-wrap;
-        }
-        pre {
-            padding: 15px;
-            overflow-x: auto;
-            background-color: #272822;
-            color: #f8f8f2;
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
-        ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        ul li {
-            margin-bottom: 8px;
-        }
-        ul.test-list li::before {
-            content: '✓';
-            color: #28aa28;
-            font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
-        }
-        .important {
-            background-color: #fff3cd;
-            border-left: 5px solid #ffc107;
-            padding: 10px;
-            margin-top: 10px;
-            margin-bottom: 15px;
-        }
-        .section-header {
-            font-weight: bold;
-            color: #00796b;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Documentación API — Localhost Chat API</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#7dd3fc;--panel:#071024;--code:#0b1220}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; background:#061425;color:#e6eef6}
+    .wrap{max-width:1100px;margin:32px auto;padding:28px;border-radius:12px;box-shadow:0 6px 30px rgba(2,6,23,0.7)}
+    header{display:flex;gap:20px;align-items:center;justify-content:center;text-align:center;}
+    header h1{margin:0;font-size:20px}
+    header p{margin:0;color:var(--muted)}
+    nav{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+    nav a{color:var(--accent);text-decoration:none;font-weight:600}
+    section{margin-top:22px}
+    h2{font-size:16px;margin:0 0 8px 0}
+    .muted{color:var(--muted);font-size:13px}
+    .card{background:rgba(255,255,255,0.02);padding:18px;border-radius:10px;margin-top:12px}
+    pre{background:var(--code);padding:12px;border-radius:8px;overflow:auto;color:#dff3ff;line-height:1.5}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Roboto Mono,monospace;font-size:13px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(125,211,252,0.12);color:var(--accent);font-weight:700;font-size:12px}
+    .endpoint{display:flex;gap:12px;align-items:center;margin-top:12px}
+    .method{padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.03);font-weight:700}
+    .get{color:#33d69f}
+    .post{color:#7dd3fc}
+    .put{color:#f0abfc}
+    .delete{color:#ff8b8b}
+    footer{margin-top:28px;color:var(--muted);font-size:13px}
+    @media(max-width:720px){.wrap{margin:14px;padding:16px}}
+    .navbar{display:flex;justify-content: space-between;margin-block:40px;width:100%;}
+    .navbar>a{flex:1;text-align:center;color:#ffffffd7;text-underline-offset:2px;text-decoration:underline}
+    .navbar>a:hover{color:var(--accent)}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🧪 Guía de Testing - Toller API</h1>
-        
-        <h2>📋 Requisitos</h2>
-        <ul>
-            <li>Tener el servidor corriendo: <code style="background-color: #ddd;">go run cmd/server/main.go</code></li>
-            <li>Extensión **REST Client** para VS Code (recomendado) o usar curl</li>
-        </ul>
-        
-        <h2>🚀 Cómo usar los tests</h2>
-        
-        <h3>Opción 1: VS Code REST Client (Recomendado)</h3>
-        <ol>
-            <li>Instala la extensión **REST Client** en VS Code</li>
-            <li>Abre el archivo <code>tests/api.http</code></li>
-            <li>Verás un botón **"Send Request"** sobre cada request</li>
-            <li>Click para ejecutar cada test</li>
-        </ol>
-        
-        <h3>Opción 2: Postman</h3>
-        <p>Importa las requests manualmente o usa curl.</p>
-        
-        <h3>Opción 3: curl</h3>
-        <p>Puedes copiar los requests del archivo <code>.http</code> y adaptarlos a curl.</p>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Documentación completa — API Local (http://localhost:8080/api/v1)</h1>
+        <p class="muted">Versión: descriptiva · Contiene todos los endpoints y explicaciones provistas por el autor.</p>
+      </div>
+    </header>
 
-        <h2>📝 Flujo de Testing Recomendado</h2>
+    <nav class="navbar">
+      <a href="#variables">Variables</a>
+      <a href="#auth">Autenticación</a>
+      <a href="#teams">Teams</a>
+      <a href="#channels">Channels</a>
+      <a href="#users">Users</a>
+      <a href="#friends">Friends</a>
+      <a href="#dms">DMS</a>
+      <a href="#websockets">WebSockets</a>
+      <a href="#security">Seguridad</a>
+    </nav>
 
-        <h3>1️⃣ Setup Inicial</h3>
-        <pre><code># Registrar usuarios de prueba
-POST /register  (Fran)
-POST /register  (Maria)
-POST /register  (Juan)</code></pre>
+    <section id="variables" class="card">
+      <h2>Variables</h2>
+      <p class="muted">Estos valores se usan como atajos en ejemplos y en herramientas como Postman / Insomnia. "Cambia el token después de hacer login".</p>
+      <pre><code>@baseUrl = http://localhost:8080/api/v1
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTk2MDYzNTEsInVzZXJfaWQiOjI1NX0.wf6MMzmW9Vvg4nFo5nRtIt27kBylAo4B_pxjFUAv4nE
+@token2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTk2MDY3NzUsInVzZXJfaWQiOjI1N30.DO5Elioy_Q1ZXc8dZj3LS2tzMS-mXIALXtznP45fwnA</code></pre>
+      <p class="muted">Notas de seguridad: estos tokens están en el documento original; en un entorno real no deben exponerse públicamente. Reemplazalos por tokens generados en /auth/login.</p>
+    </section>
 
-        <h3>2️⃣ Autenticación</h3>
-        <pre><code># Login con Fran
-POST /login</code></pre>
-        <div class="important">
-            <strong>⚠️ IMPORTANTE:</strong> Copia el token del response y pégalo en la variable <code>@token</code>
-        </div>
+    <section id="auth" class="card">
+      <h2>🔐 Autenticación</h2>
+      <p class="muted">Rutas para registro y login. Todos los endpoints protegidos requieren el header <code>Authorization: Bearer &lt;token&gt;</code> salvo los públicos.</p>
 
-        <h3>3️⃣ Gestión de Teams</h3>
-        <pre><code># Crear teams
-POST /teams  (Team Alpha)
-POST /teams  (Team Beta)
+      <div class="endpoint"><div class="method post">POST</div><div>/auth/register</div></div>
+      <p>Registrar un usuario nuevo.</p>
+      <pre><code>POST {{baseUrl}}/auth/register
+Content-Type: application/json
 
-# Ver mis teams
-GET /teams
+{
+  "username": "krossler3",
+  "email": "krosslerfrancisco3@gmail.com",
+  "password": "1234"
+}
 
-# Ver detalles de un team
-GET /teams/1</code></pre>
+Respuestas:
+- 201: {id, username, email}
+- 400: faltan campos
+- 409: email ya registrado</code></pre>
 
-        <h3>4️⃣ Gestión de Miembros</h3>
-        <pre><code># Ver miembros actuales
-GET /teams/1/members
+      <div class="endpoint"><div class="method post">POST</div><div>/auth/login</div></div>
+      <p>Autentica y devuelve token JWT.</p>
+      <pre><code>POST {{baseUrl}}/auth/login
+Content-Type: application/json
 
-# Agregar miembros
-POST /teams/1/members  (Maria - user_id: 2)
-POST /teams/1/members  (Juan - user_id: 3)
+{
+  "email": "krosslerfrancisco@gmail.com",
+  "password": "1234"
+}
 
-# Ver miembros actualizados
-GET /teams/1/members
+Respuestas:
+- 200: {token}
+- 400: faltan campos
+- 401: credenciales inválidas</code></pre>
+    </section>
 
-# Remover miembro
-DELETE /teams/1/members/3</code></pre>
+    <section id="teams" class="card">
+      <h2>👥 Teams</h2>
+      <p class="muted">Operaciones CRUD y gestión de miembros de equipos. Muchas rutas requieren permisos de admin/owner.</p>
 
-        <h2>🎯 Tests por Categoría</h2>
+      <div class="endpoint"><div class="method post">POST</div><div>/teams</div></div>
+      <p>Crear un nuevo team. Requiere token.</p>
+      <pre><code>POST {{baseUrl}}/teams
+Authorization: Bearer {{token}}
+Content-Type: application/json
 
-        <h3 class="section-header">✅ Tests de Autenticación</h3>
-        <ul class="test-list">
-            <li>Registro exitoso</li>
-            <li>Registro con email duplicado (debe fallar)</li>
-            <li>Login exitoso</li>
-            <li>Login con credenciales incorrectas (debe fallar)</li>
-        </ul>
+{
+  "name": "Team Alpha",
+  "description": "Equipo de desarrollo principal"
+}
 
-        <h3 class="section-header">✅ Tests de Teams</h3>
-        <ul class="test-list">
-            <li>Crear team exitosamente</li>
-            <li>Crear team sin nombre (debe fallar)</li>
-            <li>Crear team sin autenticación (debe fallar)</li>
-            <li>Obtener lista de teams del usuario</li>
-            <li>Obtener team específico</li>
-            <li>Actualizar team (solo admin)</li>
-            <li>Obtener team que no existe (debe fallar)</li>
-        </ul>
+Respuestas:
+- 201: {id, name, description, created_at}
+- 401: sin token
+- 400: faltan campos</code></pre>
 
-        <h3 class="section-header">✅ Tests de Miembros</h3>
-        <ul class="test-list">
-            <li>Ver miembros de un team</li>
-            <li>Agregar miembro al team (solo admin)</li>
-            <li>Agregar miembro duplicado (debe fallar)</li>
-            <li>Remover miembro del team (solo admin)</li>
-            <li>Remover al admin (debe fallar)</li>
-            <li>Salir del team (leave)</li>
-        </ul>
+      <div class="endpoint"><div class="method get">GET</div><div>/teams</div></div>
+      <p>Obtener mis teams (teams donde el usuario tiene presencia).</p>
+      <pre><code>GET {{baseUrl}}/teams
+Authorization: Bearer {{token}}
 
-        <h3 class="section-header">✅ Tests de Seguridad</h3>
-        <ul class="test-list">
-            <li>Acceso sin token (debe retornar 401)</li>
-            <li>Acceso con token inválido (debe retornar 401)</li>
-            <li>Acceso con token mal formado (debe retornar 401)</li>
-            <li>Acceso con token expirado (debe retornar 401)</li>
-        </ul>
+- 200: [ {id, name, ...}, ... ]
+- 401: sin token</code></pre>
 
-        <h3 class="section-header">✅ Tests de Edge Cases</h3>
-        <ul class="test-list">
-            <li>ID no numérico en URL</li>
-            <li>ID negativo</li>
-            <li>JSON malformado</li>
-            <li>Campos faltantes en request</li>
-            <li>Team/User que no existe</li>
-        </ul>
+      <div class="endpoint"><div class="method get">GET</div><div>/teams/{team_id}</div></div>
+      <p>Obtener información de un team específico.</p>
+      <pre><code>GET {{baseUrl}}/teams/88
+Authorization: Bearer {{token}}
 
-        <h2>🔧 Configuración de Variables</h2>
-        <p>En <code>api.http</code>, actualiza estas variables según tu setup:</p>
-        <pre><code>@baseUrl = http://localhost:8080  # Cambia si usas otro puerto
-@token = tu_token_jwt_aqui        # Actualiza después de hacer login</code></pre>
+- 200: {id, name, description, created_at, owner_id, ...}
+- 401: sin token
+- 404: id inexistente</code></pre>
 
-        <h2>📊 Respuestas Esperadas</h2>
+      <div class="endpoint"><div class="method get">GET</div><div>/teams/{team_id}/members</div></div>
+      <p>Listar miembros de un team.</p>
+      <pre><code>GET {{baseUrl}}/teams/88/members
+Authorization: Bearer {{token}}
 
-        <h3>✅ Registro Exitoso (201)</h3>
-        <pre>{
-  "message": "Usuario registrado exitosamente",
-  "user": {
-    "id": 1,
-    "username": "fran",
-    "email": "fran@example.com"
-  }
-}</pre>
+- 200: [ {user_id, username, email, role}, ... ]
+- 401: sin token
+- 404: id inexistente</code></pre>
 
-        <h3>✅ Login Exitoso (200)</h3>
-        <pre>{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "message": "Login exitoso"
-}</pre>
+      <div class="endpoint"><div class="method post">POST</div><div>/teams/{team_id}/members</div></div>
+      <p>Agregar usuario a team (requiere permisos).</p>
+      <pre><code>POST {{baseUrl}}/teams/88/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
 
-        <h3>✅ Team Creado (201)</h3>
-        <pre>{
-  "message": "Equipo creado exitosamente",
-  "team": {
-    "id": 1,
-    "name": "Team Alpha",
-    "description": "Equipo de desarrollo",
-    "created_at": "2025-09-30T..."
-  }
-}</pre>
+{
+  "user_id": 254
+}
 
-        <h3>✅ Lista de Teams (200)</h3>
-        <pre>[
-  {
-    "id": 1,
-    "name": "Team Alpha",
-    "description": "Equipo de desarrollo",
-    "created_at": "2025-09-30T...",
-    "user_role": "admin"
-  }
-]</pre>
+Respuestas:
+- 200: {message}
+- 401: sin token
+- 403: no admin
+- 409: ya es miembro
+- 404: user_id inexistente
+- 400: campo faltante</code></pre>
 
-        <h3>❌ Error de Autenticación (401)</h3>
-        <pre>{
-  "error": "unauthorized",
-  "message": "Token no proporcionado"
-}</pre>
+      <div class="endpoint"><div class="method delete">DELETE</div><div>/teams/{team_id}/members/{user_id}</div></div>
+      <p>Remover usuario de un team.</p>
+      <pre><code>DELETE {{baseUrl}}/teams/1/members/3
+Authorization: Bearer {{token}}
 
-        <h3>❌ Error de Permisos (403)</h3>
-        <pre>{
-  "error": "access_denied",
-  "message": "Solo los admins pueden agregar miembros"
-}</pre>
+- 204: eliminado
+- 401: sin token
+- 403: no admin
+- 404: user_id inexistente</code></pre>
 
-        <h2>🐛 Troubleshooting</h2>
-        
-        <h3>El token no funciona</h3>
-        <ul>
-            <li>Verifica que copiaste el token completo</li>
-            <li>Asegúrate de usar el formato: <code>Bearer tu_token</code></li>
-            <li>El token expira en 72 horas, haz login nuevamente</li>
-        </ul>
-        
-        <h3>Error de conexión</h3>
-        <ul>
-            <li>Verifica que el servidor esté corriendo</li>
-            <li>Verifica el puerto correcto (8080 por defecto)</li>
-            <li>Revisa los logs del servidor</li>
-        </ul>
-        
-        <h3>Error 500</h3>
-        <ul>
-            <li>Revisa los logs del servidor</li>
-            <li>Verifica que la base de datos esté corriendo</li>
-            <li>Verifica que las tablas existan</li>
-        </ul>
+      <div class="endpoint"><div class="method post">POST</div><div>/teams/{team_id}/leave</div></div>
+      <p>Salir del team (auto-quit).</p>
+      <pre><code>POST {{baseUrl}}/teams/2/leave
+Authorization: Bearer {{token}}
 
-        <h2>📚 Próximos Módulos</h2>
-        <p>Próximamente agregaremos tests para:</p>
-        <ul>
-            <li>📢 Channels</li>
-            <li>💬 Messages</li>
-            <li>👫 Friends (DMs)</li>
-        </ul>
+- 204: OK
+- 401: sin token
+- 404: si no pertenece al team</code></pre>
 
-        <h2>💡 Tips</h2>
-        <ol>
-            <li>**Orden importa**: Ejecuta primero los tests de registro y login</li>
-            <li>**Guarda el token**: Actualiza la variable <code>@token</code> después del login</li>
-            <li>**IDs dinámicos**: Los IDs en los ejemplos (1, 2, 3) pueden variar</li>
-            <li>**Limpia la DB**: Para empezar de cero, trunca las tablas</li>
-            <li>**Logs útiles**: Revisa los logs del servidor para debugging</li>
-        </ol>
+      <div class="endpoint"><div class="method put">PUT</div><div>/teams/{team_id}</div></div>
+      <p>Actualizar Team (solo admins/owners).</p>
+      <pre><code>PUT {{baseUrl}}/teams/90
+Authorization: Bearer {{token}}
+Content-Type: application/json
 
-        <h2>🔄 Reset de Base de Datos</h2>
-        <p>Si necesitas empezar de cero:</p>
-        <pre style="background-color: #fce4ec; color: #d81b60;"><code>TRUNCATE users, teams, user_teams CASCADE;</code></pre>
-        <p>⚠️ Esto borrará todos los datos de prueba.</p>
-    </div>
+{
+  "name": "Team Alpha Actualizado",
+  "description": "Nueva descripción"
+}
+
+- 200: {message}
+- 401: sin token
+- 403: no admin
+- 400: faltan campos
+- 404: id inexistente</code></pre>
+    </section>
+
+    <section id="channels" class="card">
+      <h2>📺 Channels</h2>
+      <p class="muted">Canales pertenecientes a teams y canales públicos/privados. Se incluyen operaciones de CRUD y gestión de miembros.</p>
+
+      <div class="endpoint"><div class="method post">POST</div><div>/teams/{team_id}/channels</div></div>
+      <p>Crear canal dentro de un team.</p>
+      <pre><code>POST {{baseUrl}}/teams/1/channels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "General",
+  "description": "Canal principal del equipo"
+}
+
+- 201: {id, name, description, created_at}
+- 401: sin token
+- 400: faltan campos</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/teams/{team_id}/channels</div></div>
+      <p>Listar canales de un team.</p>
+      <pre><code>GET {{baseUrl}}/teams/1/channels
+Authorization: Bearer {{token}}
+
+- 200: [ {id, name, ...}, ... ]</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/channels/{channel_id}</div></div>
+      <p>Obtener canal por ID.</p>
+      <pre><code>GET {{baseUrl}}/channels/1
+Authorization: Bearer {{token}}
+
+- 200: {id, name, description}
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method put">PUT</div><div>/channels/{channel_id}</div></div>
+      <p>Actualizar canal.</p>
+      <pre><code>PUT {{baseUrl}}/channels/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "General Actualizado",
+  "description": "Descripción actualizada"
+}
+
+- 200: {message}
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method delete">DELETE</div><div>/channels/{channel_id}</div></div>
+      <p>Eliminar canal.</p>
+      <pre><code>DELETE {{baseUrl}}/channels/1
+Authorization: Bearer {{token}}
+
+- 204: eliminado
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/channels/{channel_id}/members</div></div>
+      <p>Listar miembros de un canal.</p>
+      <pre><code>GET {{baseUrl}}/channels/1/members
+Authorization: Bearer {{token}}
+
+- 200: [ {id, username, role, ...}, ... ]</code></pre>
+
+      <div class="endpoint"><div class="method post">POST</div><div>/channels/{channel_id}/members</div></div>
+      <p>Agregar miembro al canal.</p>
+      <pre><code>POST {{baseUrl}}/channels/1/members
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "user_id": 2
+}
+
+- 200: {message}
+- 401: sin token
+- 400: campo faltante</code></pre>
+
+      <div class="endpoint"><div class="method delete">DELETE</div><div>/channels/{channel_id}/members/{user_id}</div></div>
+      <p>Remover miembro del canal.</p>
+      <pre><code>DELETE {{baseUrl}}/channels/1/members/2
+Authorization: Bearer {{token}}
+
+- 204: eliminado
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/channels/999 (ejemplo de error)</div></div>
+      <p>Intentar obtener un canal inexistente debe fallar con <code>404</code>.</p>
+
+      <div class="endpoint"><div class="method post">POST</div><div>/teams/1/channels (ejemplo fallo)</div></div>
+      <p>Crear canal con campo faltante devuelve <code>400</code>.</p>
+      <pre><code>POST {{baseUrl}}/teams/1/channels
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Sin descripción"
+}
+
+- 400: campo faltante</code></pre>
+    </section>
+
+    <section id="users" class="card">
+      <h2>👤 Users</h2>
+      <p class="muted">Operaciones relacionadas con usuarios: listar, obtener por ID y búsqueda.</p>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/users</div></div>
+      <p>Obtener todos los usuarios.</p>
+      <pre><code>GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+
+- 200: [ {id, username, email, created_at}, ... ]
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/users/{id}</div></div>
+      <p>Obtener usuario por ID.</p>
+      <pre><code>GET {{baseUrl}}/users/255
+Authorization: Bearer {{token}}
+
+- 200: {id, username, email, created_at}
+- 401: sin token
+- 404: id inexistente
+- 400: id inválido (abc, -1)</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/users/search</div></div>
+      <p>Buscar usuarios por query.</p>
+      <pre><code>GET {{baseUrl}}/users/search?query=maria
+Authorization: Bearer {{token}}
+
+- 200: [ {id, username, email}, ... ]
+- 401: sin token</code></pre>
+    </section>
+
+    <section id="friends" class="card">
+      <h2>🧑‍🤝‍🧑 Friends</h2>
+      <p class="muted">Solicitudes y gestión de amistades.</p>
+
+      <div class="endpoint"><div class="method post">POST</div><div>/friends/requests</div></div>
+      <p>Enviar solicitud de amistad.</p>
+      <pre><code>POST {{baseUrl}}/friends/requests
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "friend_id": 257
+}
+
+- 201: {request_id, status: "pending"}
+- 401: sin token
+- 404: friend_id inexistente
+- 409: ya son amigos / solicitud pendiente
+- 400: campo faltante</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/friends</div></div>
+      <p>Listar mis amigos.</p>
+      <pre><code>GET {{baseUrl}}/friends
+Authorization: Bearer {{token}}
+
+- 200: [ {id, username, ...}, ... ]
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/friends/requests/pending</div></div>
+      <p>Listar solicitudes pendientes. En el ejemplo se usa <code>@token2</code>.</p>
+      <pre><code>GET {{baseUrl}}/friends/requests/pending
+Authorization: Bearer {{token2}}
+
+- 200: [ {id, from_user, to_user, status}, ... ]
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method put">PUT</div><div>/friends/requests/{request_id}</div></div>
+      <p>Aprobar/actualizar solicitud de amistad (ej: usando <code>@token2</code>).</p>
+      <pre><code>PUT {{baseUrl}}/friends/requests/255
+Content-Type: application/json
+Authorization: Bearer {{token2}}
+
+{
+  "status": "accepted"
+}
+
+- 204: sin body (o 200: {message})
+- 401: sin token
+- 404: request_id inexistente
+- 403: no sos destinatario
+- 400: status inválido</code></pre>
+
+      <div class="endpoint"><div class="method delete">DELETE</div><div>/friends/{id}</div></div>
+      <p>Eliminar amigo.</p>
+      <pre><code>DELETE {{baseUrl}}/friends/2
+Authorization: Bearer {{token}}
+
+- 204: eliminado
+- 401: sin token
+- 404: id inexistente</code></pre>
+    </section>
+
+    <section id="dms" class="card">
+      <h2>💬 DMs (Mensajes Directos)</h2>
+      <p class="muted">Canales directos para mensajería privada entre usuarios.</p>
+
+      <div class="endpoint"><div class="method post">POST</div><div>/dms</div></div>
+      <p>Crear un canal DM con otro usuario.</p>
+      <pre><code>POST {{baseUrl}}/dms
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "user_id": 257
+}
+
+- 201: {channel_id, user_id, created_at}
+- 401: sin token
+- 404: user_id inexistente
+- 409: ya existe canal
+- 400: campo faltante</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/dms</div></div>
+      <p>Listar mis DMs.</p>
+      <pre><code>GET {{baseUrl}}/dms
+Authorization: Bearer {{token}}
+
+- 200: [ {channel_id, user_id, ...}, ... ]
+- 401: sin token</code></pre>
+
+      <div class="endpoint"><div class="method get">GET</div><div>/dms/{channel_id}/messages</div></div>
+      <p>Obtener mensajes de un DM.</p>
+      <pre><code>GET {{baseUrl}}/dms/1/messages
+Authorization: Bearer {{token}}
+
+- 200: [ {id, from_user, to_user, text, created_at}, ... ]
+- 401: sin token
+- 404: channel_id inexistente</code></pre>
+
+      <div class="endpoint"><div class="method post">POST</div><div>/dms/{channel_id}/read</div></div>
+      <p>Marcar mensajes como leídos en un DM.</p>
+      <pre><code>POST {{baseUrl}}/dms/1/read
+Authorization: Bearer {{token}}
+
+- 204: OK
+- 401: sin token
+- 404: channel_id inexistente</code></pre>
+    </section>
+
+    <section id="websockets" class="card">
+      <h2>� WEBSOCKETS</h2>
+      <p class="muted">Soporte para chat en tiempo real y notificaciones. Endpoint de conexión y mensajes soportados.</p>
+
+      <pre><code>ws://localhost:8080/ws/chat?token={{token}}</code></pre>
+
+      <p class="muted">Ejemplo de conexión en JavaScript:</p>
+      <pre><code>const ws = new WebSocket('ws://localhost:8080/ws/chat?token=TU_TOKEN');
+ws.onopen = () =&gt; { /* autenticado */ };
+ws.onmessage = (event) =&gt; { const data = JSON.parse(event.data); /* manejar */ };
+
+// Enviar mensaje
+ws.send(JSON.stringify({
+  type: "message",
+  channel_id: 1,
+  text: "Hola a todos!"
+}));</code></pre>
+
+      <p>Tipos de mensajes (ejemplos):</p>
+      <pre><code>{
+  "type": "message",
+  "from_user": 255,
+  "channel_id": 1,
+  "text": "Hola a todos!",
+  "created_at": "2025-10-01T17:00:00Z"
+}
+
+{
+  "type": "user_joined",
+  "user_id": 255,
+  "channel_id": 1
+}
+
+{
+  "type": "user_left",
+  "user_id": 255,
+  "channel_id": 1
+}
+
+{
+  "type": "error",
+  "message": "Token inválido"
+}
+</code></pre>
+
+      <p class="muted">Otros tipos: typing, read, notificaciones y eventos custom según implementación del backend.</p>
+    </section>
+
+    <section id="security" class="card">
+      <h2>🧪 Pruebas de seguridad y errores comunes</h2>
+      <p class="muted">Lista de tests manuales y comportamientos esperados ante entradas inválidas o sin token.</p>
+
+      <table>
+        <thead><tr><th>Acción</th><th>Ejemplo</th><th>Resultado esperado</th></tr></thead>
+        <tbody>
+          <tr><td>Acceder a ruta protegida sin token</td><td>GET {{baseUrl}}/teams</td><td>401</td></tr>
+          <tr><td>Acceder con token inválido</td><td>GET {{baseUrl}}/teams (Authorization: Bearer token_invalido_123)</td><td>401</td></tr>
+          <tr><td>Acceder con token mal formado</td><td>Authorization: InvalidFormat</td><td>401</td></tr>
+          <tr><td>JSON malformado</td><td>POST {{baseUrl}}/teams con JSON mal formado</td><td>400</td></tr>
+          <tr><td>Campo faltante en request</td><td>POST {{baseUrl}}/teams/1/members con campo wrong_field</td><td>400</td></tr>
+        </tbody>
+      </table>
+
+      <p class="muted">Ejemplo de JSON malformado:</p>
+      <pre><code>{
+  "name": "Test"
+  "missing_comma": true
+}</code></pre>
+    </section>
+
+    <footer>
+      <p class="muted">Esta documentación es una representación HTML/CSS del documento original proporcionado por el usuario. Contiene ejemplos de request/response, códigos de estado esperados y notas de seguridad. Recomendación: usar herramientas como Postman o Insomnia para probar interactivamente y reemplazar los tokens por valores válidos tras el login.</p>
+    </footer>
+
+  </div>
 </body>
 </html>

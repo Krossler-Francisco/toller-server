@@ -44,17 +44,27 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.Service.Login(req.Email, req.Password)
+	token, user, err := h.Service.Login(req.Email, req.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	resp := map[string]interface{}{
+		"token": token,
+		"user": map[string]interface{}{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+		},
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // Registrar rutas
 func RegisterRoutes(r *mux.Router, handler *AuthHandler) {
-	r.HandleFunc("/register", handler.RegisterHandler).Methods("POST")
-	r.HandleFunc("/login", handler.LoginHandler).Methods("POST")
+
+	api := r.PathPrefix("/api/v1/auth").Subrouter()
+	api.HandleFunc("/register", handler.RegisterHandler).Methods("POST")
+	api.HandleFunc("/login", handler.LoginHandler).Methods("POST")
 }

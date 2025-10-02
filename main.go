@@ -52,48 +52,58 @@ func main() {
 	}
 	log.Println("Conectado a la DB exitosamente")
 
-	// Inicializar Auth
+	// Router principal
+	r := mux.NewRouter()
+
+	// Middleware CORS abierto
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With")
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
+
+	// --- Inicialización y Registro de Módulos ---
+
+	// Módulo de Autenticación (público)
 	authRepo := &auth.UserRepository{DB: db}
 	authService := &auth.AuthService{Repo: authRepo}
 	authHandler := &auth.AuthHandler{Service: authService}
+	auth.RegisterRoutes(r, authHandler)
 
-	// Inicializar Teams
+	// Módulo de Teams (protegido)
 	teamsRepo := &teams.TeamRepository{DB: db}
 	teamsService := &teams.TeamService{Repo: teamsRepo}
 	teamsHandler := &teams.TeamHandler{Service: teamsService}
+	teams.RegisterRoutes(r, teamsHandler, auth.JWTMiddleware)
 
-	// Inicializar Channels
+	// Módulo de Channels (protegido)
 	channelsRepo := &channels.ChannelRepository{DB: db}
 	channelsService := &channels.ChannelService{Repo: channelsRepo}
 	channelsHandler := &channels.ChannelHandler{Service: channelsService}
+	channels.RegisterRoutes(r, channelsHandler, auth.JWTMiddleware)
 
-
-	// Inicializar Chat
+	// Módulo de Chat (WebSocket)
 	hub := chat.NewHub()
 	chatHandler := chat.NewHandler(db, jwtSecret, hub)
-
-	// Router
-	r := mux.NewRouter()
-
-	// -----------------------------------------
-	// WebSocket
-	// -----------------------------------------
 	r.HandleFunc("/ws/channel/{channel_id}", chatHandler.ServeWS)
 
-	// -----------------------------------------
-	// Rutas REST
-	// -----------------------------------------
-	// Públicas
-	auth.RegisterRoutes(r, authHandler)
-
-	// Protegidas con JWT
-	teams.RegisterRoutes(r, teamsHandler, auth.JWTMiddleware)
-	channels.RegisterRoutes(r, channelsHandler, auth.JWTMiddleware)
+	// Otros Módulos (protegidos)
 	dms.RegisterDMSRoutes(r, db)
 	users.RegisterUserRoutes(r, db)
 	friends.RegisterFriendRoutes(r, db)
 
-	// Puerto
+	// Servir archivos estáticos
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
+
+	// --- Iniciar Servidor ---
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

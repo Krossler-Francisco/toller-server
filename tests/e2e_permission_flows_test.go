@@ -1,4 +1,3 @@
-
 package tests
 
 import (
@@ -9,39 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"toller-server/modules/teams"
+
+	"github.com/stretchr/testify/assert"
 )
-
-// Helper para registrar y loguear un usuario. Retorna el ID de usuario y el token JWT.
-func registerAndLogin(t *testing.T, serverURL, username, email, password string) (int, string) {
-	// Registrar
-	registerData := map[string]string{"username": username, "email": email, "password": password}
-	registerBody, _ := json.Marshal(registerData)
-	resp, err := http.Post(serverURL+"/register", "application/json", bytes.NewBuffer(registerBody))
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusCreated, resp.StatusCode, "Fallo al registrar usuario")
-	var registerResp map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&registerResp)
-	userID := int(registerResp["id"].(float64))
-	resp.Body.Close()
-
-	// Login
-	loginData := map[string]string{"email": email, "password": password}
-	loginBody, _ := json.Marshal(loginData)
-	resp, err = http.Post(serverURL+"/login", "application/json", bytes.NewBuffer(loginBody))
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode, "Fallo al iniciar sesión")
-	var loginResp map[string]string
-	json.NewDecoder(resp.Body).Decode(&loginResp)
-	token := loginResp["token"]
-	resp.Body.Close()
-
-	assert.NotZero(t, userID)
-	assert.NotEmpty(t, token)
-
-	return userID, token
-}
 
 // TestTeamMembershipFlow valida el flujo de añadir y quitar un miembro de un equipo.
 func TestTeamMembershipFlow(t *testing.T) {

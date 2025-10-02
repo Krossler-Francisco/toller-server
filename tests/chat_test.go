@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"toller-server/modules/chat"
+
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
-	"toller-server/modules/chat"
 )
 
 // TestWebSocketBroadcast valida el flujo completo de broadcast entre dos clientes.

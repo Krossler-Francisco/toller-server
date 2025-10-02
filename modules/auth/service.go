@@ -34,15 +34,15 @@ func (s *AuthService) Register(username, email, password string) (*User, error) 
 	return user, nil
 }
 
-func (s *AuthService) Login(email, password string) (string, error) {
+func (s *AuthService) Login(email, password string) (string, *User, error) {
 	user, err := s.Repo.GetUserByEmail(email)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	// Verificar contraseña
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", errors.New("contraseña incorrecta")
+		return "", nil, errors.New("contraseña incorrecta")
 	}
 
 	// Crear JWT
@@ -53,5 +53,11 @@ func (s *AuthService) Login(email, password string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+	signed, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", nil, err
+	}
+	// No enviar password en respuesta
+	user.Password = ""
+	return signed, user, nil
 }

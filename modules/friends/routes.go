@@ -3,18 +3,19 @@ package friends
 import (
 	"database/sql"
 
-	"github.com/gorilla/mux"
 	"toller-server/modules/auth"
+
+	"github.com/gorilla/mux"
 )
 
 func RegisterFriendRoutes(router *mux.Router, db *sql.DB) {
 	h := NewFriendHandler(db)
 
-	s := router.PathPrefix("/api/v1/friends").Subrouter()
+	s := router.PathPrefix("/api/v1").Subrouter()
 	s.Use(auth.JWTMiddleware)
 
-	s.HandleFunc("/requests", h.SendFriendRequestHandler).Methods("POST")
-	s.HandleFunc("/requests/{friendID:[0-9]+}", h.UpdateFriendRequestHandler).Methods("PUT")
-	s.HandleFunc("", h.ListFriendsHandler).Methods("GET")
-	s.HandleFunc("/requests/pending", h.ListPendingRequestsHandler).Methods("GET")
+	s.HandleFunc("/friends/requests", h.SendFriendRequestHandler).Methods("POST")
+	s.HandleFunc("/friends/requests/{friendID:[0-9]+}", h.UpdateFriendRequestHandler).Methods("PUT")
+	s.HandleFunc("/friends", h.ListFriendsHandler).Methods("GET")
+	s.HandleFunc("/friends/requests/pending", h.ListPendingRequestsHandler).Methods("GET")
 }

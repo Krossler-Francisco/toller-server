@@ -7,8 +7,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"toller-server/modules/friends"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFriendsFlow(t *testing.T) {

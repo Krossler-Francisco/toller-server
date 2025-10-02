@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"toller-server/modules/users"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUsersFlow(t *testing.T) {
@@ -19,7 +20,7 @@ func TestUsersFlow(t *testing.T) {
 	_, _ = registerAndLogin(t, server.URL, "userB_users", "userb_users@test.com", "password123")
 
 	// --- 2. Get all users ---
-	req, _ := http.NewRequest("GET", server.URL+"/api/v1/users", nil)
+	req, _ := http.NewRequest("GET", server.URL+"/api/v1/users/", nil)
 	req.Header.Set("Authorization", "Bearer "+userA_Token)
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
