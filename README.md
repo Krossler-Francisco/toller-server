@@ -1,153 +1,136 @@
-# Toller Server
+# Toller Server — Chat y colaboración en tiempo real
 
-API REST de autenticación construida con Go, PostgreSQL y JWT.
+Este repo es el backend de una aplicación de chat y colaboración. Está escrito en Go, usa PostgreSQL, y expone HTTP + WebSockets. La idea fue construir una arquitectura limpia y modular, fácil de probar y de hacer crecer.
 
-## Requisitos
+## Mis objetivos
 
-- Go 1.21 o superior
-- PostgreSQL 12 o superior
+- Autenticación JWT simple y segura
+- Módulos independientes (auth, users, teams, channels, friends, dms, chatWs)
+- Servicios con lógica de negocio, handlers y repositorios para acceso a datos
+- WebSockets para chat en tiempo real (broadcast por canal, historial, typing)
+- Pruebas de integración vía `tests/api.http` y tests en `tests/*.go`
 
-## Instalación
+## Arquitectura y estructura del código
 
-1. Clona el repositorio:
-```bash
-git clone https://github.com/TU_USUARIO/toller-server.git
-cd toller-server
+Separé el código por módulos y dentro de cada módulo seguí un patrón muy claro:
+
+- Handler (HTTP/WebSocket): adapta la entrada/salida HTTP y WS
+- Service: encapsula la lógica de negocio
+- Repository: habla con la base de datos (SQL)
+- Routes: registra las rutas del módulo en el router principal
+
+El router global vive en `main.go` y centraliza las “salidas” HTTP. Además, ahí se inicializa el Hub de WebSockets, la conexión a la DB y el middleware de autenticación.
+
+```
+main.go
+  ├─ modules/
+  │   ├─ auth/
+  │   ├─ users/
+  │   ├─ teams/
+  │   ├─ channels/
+  │   ├─ friends/
+  │   ├─ dms/
+  │   └─ chat/ (handler WS, hub, client, repository)
+  ├─ pkg/config/001_init.sql (schema SQL)
+  ├─ tests/ (HTTP, tests de integración y tests end to end)
+  └─ static/ (tentativa de documentación HTML y clientes de prueba simples)
 ```
 
-2. Instala las dependencias:
+Intente que este enfoque haga que cada módulo sea autónomo y reemplazable, y permite testear servicios y repositorios en aislamiento. Los handlers son “adapters” que traducen HTTP ↔ objetos de dominio.
+
+## Autenticación (JWT)
+
+El flujo de auth vive en `modules/auth` y funciona así:
+
+- Registro: `POST /api/v1/auth/register` crea un usuario (username, email, password hasheado con bcrypt)
+- Login: `POST /api/v1/auth/login` devuelve `{ token, user }` con la identidad del usuario
+- Middleware: `JWTMiddleware` valida el token y coloca `user_id` en el contexto de la request para rutas protegidas
+
+El token viaja en `Authorization: Bearer <token>` o en el query param `token` para WebSockets.
+
+## WebSockets (Chat en tiempo real)
+
+En `modules/chat` hay un `Hub` que orquesta salas por `channel_id`, `Client` que maneja la conexión WebSocket y los pumps de lectura/escritura, y un `Repository` para persistencia de mensajes.
+
+- Conexión: `ws://localhost:8080/ws/channel/{channel_id}?token=<JWT>`
+- Mensajes entrantes (desde el cliente):
+  - `{ "type": "message", "content": "Hola a todos" }`
+  - `{ "type": "typing" }`
+- Persistencia: cada mensaje `type: "message"` se guarda en `messages (channel_id, user_id, content)` y se rebotea a los clientes del canal.
+- Broadcast: el Hub entrega a todos los clientes conectados un `OutgoingMessage` con `{ type, content, user_id, channel_id, message_id, created_at }`.
+
+Esto permite historial, notificaciones y extensiones como “typing” sin bloquear.
+
+Entiendo que el envio de JWT en la URL no es lo ideal, pero es un compromiso común para WebSockets donde los headers son más difíciles de manejar desde clientes web. En node existen librerías que permiten enviar headers personalizados en la conexión WS, pero en Go no pude encontrar una solución simple y no quise adentrarme en ese tema.
+
+## Módulos y endpoints principales
+
+- Auth: `POST /auth/register`, `POST /auth/login`
+- Users: `GET /users`, `GET /users/{id}`, `GET /users/search?query=...`
+- Teams: `POST /teams`, `GET /teams`, `GET /teams/{id}`, `GET /teams/{id}/members`, `PUT /teams/{id}` (update), `POST /teams/{team_id}/members`, `DELETE /teams/{team_id}/members/{user_id}`
+- Channels: `POST /teams/{team_id}/channels`, `GET /teams/{team_id}/channels`, `GET /channels/{channel_id}`, `PUT /channels/{channel_id}`, `DELETE /channels/{channel_id}`, `GET /channels/{channel_id}/members`, `POST /channels/{channel_id}/members`, `DELETE /channels/{channel_id}/members/{user_id}`
+- Friends: `POST /friends/requests`, `PUT /friends/requests/{friendID}`, `GET /friends`, `GET /friends/requests/pending`
+- DMs: `POST /dms`, `GET /dms`, `GET /dms/{channelID}/messages`, `POST /dms/{channelID}/read`
+- WebSocket: `GET /ws/channel/{channel_id}` (upgrade WS)
+
+Hay documentación viva en `tests/api.http` con ejemplos de request y respuestas esperadas.
+
+## Base de datos (PostgreSQL)
+
+El esquema está en `pkg/config/001_init.sql` e incluye:
+
+- `users`: identidad y credenciales
+- `teams` y `user_teams`: equipos y membresía (roles)
+- `channels` y `channel_users`: canales (públicos por team o DMs) y membresía
+- `messages`: mensajes persistidos (por canal y user)
+- `friends`: solicitudes y relaciones de amistad (`pending`, `accepted`, `blocked`)
+- `last_read`: para marcadores de lectura por canal
+
+Todas las claves foráneas usan `ON DELETE CASCADE` para mantener integridad.
+
+## Para probar
+
+Variables necesarias:
+- `DB_URL`: cadena de conexión a Postgres
+- `JWT_SECRET`: secreto para firmar JWT
+- `PORT` (opcional): puerto HTTP (por defecto 8080)
+
+Pasos:
+
 ```bash
+# 1) Instalar dependencias
 go mod download
+
+# 2) Crear base y correr el schema
+psql "$DB_URL" -f pkg/config/001_init.sql
+
+# 3) Levantar el servidor
+go run .
 ```
 
-3. Configura las variables de entorno:
+El servidor expone CORS abierto (solo dev) y sirve archivos estáticos en `/static`.
 
-Crea un archivo `.env` en la raíz del proyecto:
+## Pruebas y calidad
 
-```env
-JWT_SECRET=tu_secreto_jwt_super_seguro
-DB_URL=postgres://postgres:1234@localhost:5432/toller?sslmode=disable
-PORT=8080
-```
+- `tests/api.http`: colección de requests para cubrir auth, teams, channels, users, friends, DMs y errores comunes.
+- `tests/*.go`: pruebas de flujos e2e de usuarios, permisos, chat, etc.
 
-4. Crea la base de datos y las tablas:
+## Decisiones de diseño y aprendizajes
 
-```sql
-CREATE DATABASE toller;
+- Modularidad: facilita mantener y evolucionar cada dominio sin romper el resto.
+- Separación Handler/Service/Repository: claridad entre entrada/salida, negocio y persistencia.
+- WebSockets con Hub: escalable y aislado por canal, fácil de instrumentar y testear.
+- JWT en middleware: simple, efectivo, y reutilizable por todos los módulos.
+- Documentación viva: `api.http` funciona como contrato de API y base para tests manuales.
 
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+## Próximos pasos (ideas)
 
-## 🏃 Ejecución
+- Roles por canal más avanzados (moderación)
+- Paginación y búsqueda avanzada en mensajes y usuarios
+- Métricas y trazas (Prometheus/OpenTelemetry)
+- Integración de notificaciones push
+- Endpoints de administración y reportes globales
+- Agregar documentacion OpenAPI/Swagger, que se documente automáticamente
+- Tests unitarios para servicios y repositorios
 
-### Desarrollo
-```bash
-go run cmd/server/main.go
-```
-
-### Producción
-```bash
-go build -o bin/server cmd/server/main.go
-./bin/server
-```
-
-El servidor se ejecutará en `http://localhost:8080`
-
-## 📡 Endpoints
-
-### Registro de usuario
-```http
-POST /register
-Content-Type: application/json
-
-{
-  "username": "usuario",
-  "email": "usuario@example.com",
-  "password": "contraseña123"
-}
-```
-
-**Respuesta exitosa (201):**
-```json
-{
-  "message": "Usuario registrado exitosamente",
-  "user": {
-    "id": 1,
-    "username": "usuario",
-    "email": "usuario@example.com"
-  }
-}
-```
-
-### Login
-```http
-POST /login
-Content-Type: application/json
-
-{
-  "email": "usuario@example.com",
-  "password": "contraseña123"
-}
-```
-
-**Respuesta exitosa (200):**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "message": "Login exitoso"
-}
-```
-
-## 🛠️ Tecnologías
-
-- [Go](https://golang.org/) - Lenguaje de programación
-- [Gorilla Mux](https://github.com/gorilla/mux) - Router HTTP
-- [PostgreSQL](https://www.postgresql.org/) - Base de datos
-- [JWT](https://github.com/golang-jwt/jwt) - Autenticación
-- [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt) - Hash de contraseñas
-
-## 📁 Estructura del proyecto
-
-```
-toller-server/
-├── cmd/
-│   └── server/
-│       └── main.go          # Punto de entrada
-├── internal/
-│   └── auth/
-│       ├── handler.go       # Controladores HTTP
-│       ├── service.go       # Lógica de negocio
-│       ├── repository.go    # Acceso a datos
-│       └── models.go        # Modelos de datos
-├── .env                     # Variables de entorno (no subir a git)
-├── go.mod
-├── go.sum
-└── README.md
-```
-
-## 🌐 Deploy en Render
-
-1. Crea una base de datos PostgreSQL en Render
-2. Crea un Web Service conectado a tu repo de GitHub
-3. Configura las variables de entorno en Render:
-   - `JWT_SECRET`
-   - `DB_URL` (obtenida de la base de datos de Render)
-   - `PORT` (opcional, Render lo asigna automáticamente)
-4. Build Command: `go build -o bin/server cmd/server/main.go`
-5. Start Command: `./bin/server`
-
-## 📝 Notas
-
-- Las contraseñas se hashean con bcrypt antes de almacenarse
-- Los tokens JWT expiran después de 72 horas
-- La base de datos gratuita de Render se elimina después de 90 días
-
-## 📄 Licencia
-
-MIT
+---
