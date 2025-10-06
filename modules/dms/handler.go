@@ -3,6 +3,7 @@ package dms
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -20,8 +21,10 @@ func NewDMHandler(db *sql.DB) *DMHandler {
 }
 
 func (h *DMHandler) CreateDMHandler(w http.ResponseWriter, r *http.Request) {
+
 	userID, ok := r.Context().Value("user_id").(int)
 	if !ok {
+		log.Println("[DM] User not authenticated")
 		http.Error(w, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
@@ -31,16 +34,21 @@ func (h *DMHandler) CreateDMHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Println("[DM] Invalid request body:", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("[DM] CreateDMHandler: userID=%d, recipientID=%d\n", userID, req.RecipientID)
+
 	channelID, err := h.Service.CreateDM(userID, req.RecipientID)
 	if err != nil {
+		log.Printf("[DM] Error creating DM channel: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("[DM] DM channel created: channelID=%d\n", channelID)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]int{"channel_id": channelID})

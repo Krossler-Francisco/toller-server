@@ -1,6 +1,6 @@
 ### Variables (cambia el token después de hacer login)
 @baseUrl = http://localhost:8080/api/v1
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTk2MTY1OTYsInVzZXJfaWQiOjI1NX0._OpUasGrhHitClkwzgSoB07l7jIHA7TJHNsA9wnYg4w
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTk2Mjk0NzIsInVzZXJfaWQiOjI1NX0.ke2Dr8Fkg573JeOTrZfKVhR8OkpuvPxJsHjTwgMt5IY
 @token2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTk2MDY3NzUsInVzZXJfaWQiOjI1N30.DO5Elioy_Q1ZXc8dZj3LS2tzMS-mXIALXtznP45fwnA
 
 ### ============================================
@@ -222,7 +222,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "friend_id": 257
+  "friend_id": 253
 }
 // ✅ 201 {request_id, status: "pending"}
 // ❌ sin token → 401

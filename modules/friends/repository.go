@@ -1,6 +1,9 @@
 package friends
 
-import "database/sql"
+import (
+	"database/sql"
+	"log"
+)
 
 type FriendRepository struct {
 	DB *sql.DB
@@ -16,8 +19,29 @@ func (r *FriendRepository) CreateFriendRequest(userID, friendID int) error {
 }
 
 func (r *FriendRepository) UpdateFriendRequest(userID, friendID int, status string) error {
-	_, err := r.DB.Exec("UPDATE friends SET status = $1 WHERE user_id = $2 AND friend_id = $3", status, friendID, userID)
-	return err
+	log.Printf("[FRIENDS] UpdateFriendRequest: user_id=%d, friend_id=%d, status=%s\n", userID, friendID, status)
+	res, err := r.DB.Exec("UPDATE friends SET status = $1 WHERE user_id = $2 AND friend_id = $3", status, userID, friendID)
+	if err != nil {
+		log.Printf("[FRIENDS] Update error: %v\n", err)
+		return err
+	}
+	rows, _ := res.RowsAffected()
+	log.Printf("[FRIENDS] Rows affected (direct): %d\n", rows)
+	if rows == 0 {
+		// Intentar el update en el sentido inverso
+		log.Printf("[FRIENDS] Intentando update inverso: user_id=%d, friend_id=%d\n", friendID, userID)
+		res2, err2 := r.DB.Exec("UPDATE friends SET status = $1 WHERE user_id = $2 AND friend_id = $3", status, friendID, userID)
+		if err2 != nil {
+			log.Printf("[FRIENDS] Update inverso error: %v\n", err2)
+			return err2
+		}
+		rows2, _ := res2.RowsAffected()
+		log.Printf("[FRIENDS] Rows affected (inverso): %d\n", rows2)
+		if rows2 == 0 {
+			return sql.ErrNoRows
+		}
+	}
+	return nil
 }
 
 func (r *FriendRepository) ListFriends(userID int) ([]Friend, error) {
